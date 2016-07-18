@@ -1,8 +1,15 @@
 package com.achraf.sport.cote.gestion_commercial_sqlite.DataBase;
 
+import android.content.ContentValues;
 import android.content.Context;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+
+import com.achraf.sport.cote.gestion_commercial_sqlite.model.Client;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by Achraf on 20/06/2016.
@@ -86,4 +93,72 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.execSQL("DROP TABLE IF EXIST " + TABLE_COMMANDE_DETAILS);
         onCreate(db);
     }
+
+    //CRUD TABLE CLIENT
+    public void insertClient(Client client){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_NOM, client.getNom());
+        values.put(COLUMN_PRENOM, client.getPrenom());
+        db.insert(TABLE_CLIENT, null, values);
+    }
+
+    public Client getClient(int id){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String query = "SELECT * FROM " + TABLE_CLIENT
+                +" WHERE " + COLUMN_ID + " = " + id;
+
+        Cursor c = db.rawQuery(query, null);
+
+        if(c != null)
+            c.moveToFirst();
+
+        Client client = new Client();
+        client.setId(id);
+        client.setNom(c.getString(c.getColumnIndex(COLUMN_NOM)));
+        client.setPrenom(c.getString(c.getColumnIndex(COLUMN_PRENOM)));
+
+        return client;
+    }
+
+    public List<Client> getAllClients(){
+        List<Client> clients = new ArrayList<Client>();
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        String query = "SELECT * FROM " + TABLE_CLIENT;
+
+        Cursor c = db.rawQuery(query, null);
+
+        if(c.moveToFirst()){
+            do{
+                Client client = new Client();
+                client.setId(c.getInt(c.getColumnIndex(COLUMN_ID)));
+                client.setNom(c.getString(c.getColumnIndex(COLUMN_NOM)));
+                client.setPrenom(c.getString(c.getColumnIndex(COLUMN_PRENOM)));
+                clients.add(client);
+            }
+            while(c.moveToNext());
+        }
+
+        return clients;
+    }
+
+    public void updateClient(Client client){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_NOM, client.getNom());
+        values.put(COLUMN_PRENOM, client.getPrenom());
+
+        db.update(TABLE_CLIENT, values, COLUMN_ID + " = ?", new String[] {String.valueOf(client.getId())});
+    }
+
+    public void deleteClient(int id){
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        db.delete(TABLE_CLIENT, COLUMN_ID + " = ?", new String[] {String.valueOf(id)});
+    }
+
 }
